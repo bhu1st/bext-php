@@ -169,7 +169,7 @@ function calculateTotals($transactions)
                         $totals['category'][$parent][$child] = 0;
                     }
                     $totals['category'][$parent][$child] += $amount;
-					$totals['category'][$parent][':total'] += $amount;
+                    $totals['category'][$parent][':total'] += $amount;
                 }
             } else {
                 $totals['category'][$parent][':total'] += $amount;
@@ -186,7 +186,7 @@ function calculateTotals($transactions)
                             $totals['budget_category'][$parent][$child] = 0;
                         }
                         $totals['budget_category'][$parent][$child] += $budget;
-						$totals['budget_category'][$parent][':total'] += $budget;
+                        $totals['budget_category'][$parent][':total'] += $budget;
                     }
                 } else {
                     $totals['budget_category'][$parent][':total'] += $budget;
@@ -268,7 +268,8 @@ function calculateTotals($transactions)
     return $totals;
 }
 
-function matchNestedCategoryOrAccount($data, $query) {
+function matchNestedCategoryOrAccount($data, $query)
+{
     $parts = explode('>', $query); // Split query by '>'
     $key = $parts[0];
     $subkey = $parts[1] ?? null;
@@ -291,7 +292,7 @@ function matchNestedCategoryOrAccount($data, $query) {
 function getTransactionsByFilter($transactions, $filter)
 {
     $filteredTransactions = [];
-    
+
     // Determine the type of filter (person, account, category, or method)
     $type = $filter[0]; // Get the prefix
     $query = substr($filter, 1); // Remove the prefix to get the value
@@ -390,10 +391,8 @@ function getTransactionsByFilter($transactions, $filter)
         }
 
         // If transaction matches the filter, add it to the filtered array and calculate totals
-        if ($matched) 
-        {
+        if ($matched) {
             $filteredTransactions[] = $entry;
-
         }
     }
 
@@ -496,26 +495,28 @@ function displayTotals($totals, $json = false)
     }
 }
 
-// Load and parse the .bext file
+if (php_sapi_name() === 'cli') {
+    // Load and parse the .bext file
 
-$filename = isset($argv[1]) ? $argv[1] : null;
-$filter = isset($argv[2]) ? $argv[2] : null;
+    $filename = isset($argv[1]) ? $argv[1] : null;
+    $filter = isset($argv[2]) ? $argv[2] : null;
 
-if (file_exists($filename)) {
+    if (file_exists($filename)) {
 
-    $parsed_data = parseBextFile($filename);
+        $parsed_data = parseBextFile($filename);
 
-    if (!empty($filter)) {
-        $results = getTransactionsByFilter($parsed_data, $filter);
-        //displayTransactions($results);
-        echo displayTransactions($results, 1);
+        if (!empty($filter)) {
+            $results = getTransactionsByFilter($parsed_data, $filter);
+            //displayTransactions($results);
+            echo displayTransactions($results, 1);
+        } else {
+            $totals = calculateTotals($parsed_data);
+            //displayTotals($totals);
+            echo displayTotals($totals, 1);
+        }
     } else {
-        $totals = calculateTotals($parsed_data);
-        //displayTotals($totals);
-        echo displayTotals($totals, 1);
+        echo "File not found: {$filename}\n";
     }
-} else {
-    echo "File not found: {$filename}\n";
 }
 
 /* End of file BEXT.php */
