@@ -71,14 +71,14 @@ function parseBextFile($filename)
         // Extract timestamp
         if (preg_match('/\[(.*?)\]/', $line, $matches)) {
             $timestamp = $matches[1];
-            if (preg_match('/^\d{2}\/\d{2}$/', $timestamp)) {
-                // If timestamp is in short format (mm/dd), add inferred time and year
+            if (preg_match('/^\d{1,2}\/\d{1,2}$/', $timestamp)) {
+                // If timestamp is in short format (mm/dd, m/d, mm/d or m/dd), add inferred time and year
                 if ($lastFullDateYear) {
                     $timestamp = $lastFullDateYear . '/' . $timestamp . ' 18:00'; //set default time to 6pm.
                 } else {
                     throw new Exception("Short date format used without a preceding full date to infer the year.");
                 }
-            } elseif (preg_match('/^\d{2}\/\d{2}\s\d{2}:\d{2}$/', $timestamp)) {
+            } elseif (preg_match('/^\d{1,2}\/\d{1,2}\s\d{2}:\d{2}$/', $timestamp)) {
                 // If timestamp is in short format (mm/dd HH:ii), add inferred year
                 if ($lastFullDateYear) {
                     $timestamp = $lastFullDateYear . '/' . $timestamp;
@@ -383,7 +383,7 @@ function getTransactionsByFilter($transactions, $filter)
 
         // Filter by date range
         if ($dateFilter && $entry['timestamp'] !== null) {
-            $entryDate = DateTime::createFromFormat('Y/m/d H:i', $entry['timestamp']);
+            $entryDate = DateTime::createFromFormat('Y/m/d H:i', date("Y/m/d H:i", strtotime($entry['timestamp'])));
             if ($entryDate && $entryDate >= $dateStart && $entryDate <= $dateEnd) {
                 $matched = true;
             }
