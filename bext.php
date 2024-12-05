@@ -27,12 +27,12 @@ function parseBextFile($filename)
             'type' => '',
             'amount' => 0,
             'budget' => 0,
+            'accounts' => [],
             'persons' => [],
             'categories' => [],
-            'timestamp' => null,
-            'accounts' => [],
             'remarks' => 'Other',
             'method' => 'Other',
+            'timestamp' => null            
         ];
 
         // Determine type (+, -, $)
@@ -52,6 +52,22 @@ function parseBextFile($filename)
             $entry['persons'] = array_map('trim', explode(';', $matches[1]));
         }
 
+        // Extract accounts
+        if (preg_match('/~([^#@\[\]?:]+)/', $line, $matches)) {
+            $accounts = array_map('trim', explode(';', $matches[1]));
+            foreach ($accounts as $account) {
+                if (strpos($account, '>') !== false) {
+                    [$parent, $child] = array_map('trim', explode('>', $account, 2));
+                    if (!isset($entry['accounts'][$parent])) {
+                        $entry['accounts'][$parent] = [];
+                    }
+                    $entry['accounts'][$parent][$child] = true;
+                } else {
+                    $entry['accounts'][$account] = true;
+                }
+            }
+        }
+
         // Extract categories
         if (preg_match('/#([^@\[\]~?:]+)/', $line, $matches)) {
             $categories = array_map('trim', explode(';', $matches[1]));
@@ -66,6 +82,16 @@ function parseBextFile($filename)
                     $entry['categories'][$category] = true; // Placeholder for flat structure.
                 }
             }
+        }
+
+        // Extract remarks
+        if (preg_match('/\?((?:[^#\[\]~@:])+)/', $line, $matches)) {
+            $entry['remarks'] = trim($matches[1]);
+        }
+
+        // Match payment method and handle : in the timestamp
+        if (preg_match('/:([^\s#\[\]~?:]+)(?=\s|$)/', $line, $matches)) {
+            $entry['method'] = trim($matches[1]);
         }
 
         // Extract timestamp
@@ -92,32 +118,6 @@ function parseBextFile($filename)
             $entry['timestamp'] = $timestamp;
         }
 
-        // Extract accounts
-        if (preg_match('/~([^#@\[\]?:]+)/', $line, $matches)) {
-            $accounts = array_map('trim', explode(';', $matches[1]));
-            foreach ($accounts as $account) {
-                if (strpos($account, '>') !== false) {
-                    [$parent, $child] = array_map('trim', explode('>', $account, 2));
-                    if (!isset($entry['accounts'][$parent])) {
-                        $entry['accounts'][$parent] = [];
-                    }
-                    $entry['accounts'][$parent][$child] = true;
-                } else {
-                    $entry['accounts'][$account] = true;
-                }
-            }
-        }
-
-        // Extract remarks
-        if (preg_match('/\?((?:[^#\[\]~@:])+)/', $line, $matches)) {
-            $entry['remarks'] = trim($matches[1]);
-        }
-
-        // Match payment method and handle : in the timestamp
-        if (preg_match('/:([^\s#\[\]~?:]+)(?=\s|$)/', $line, $matches)) {
-            $entry['method'] = trim($matches[1]);
-        }
-
         $transactions[] = $entry;
     }
 
@@ -138,7 +138,7 @@ function calculateTotals($transactions)
         'method' => [],
         'budget_category' => [],
         'budget_person' => [],
-        'budget_account' => [],
+        'budget_account' => []
     ];
 
     // Iterate over each transaction and calculate totals
@@ -168,11 +168,23 @@ function calculateTotals($transactions)
                     if (!isset($totals['category'][$parent][$child])) {
                         $totals['category'][$parent][$child] = 0;
                     }
-                    $totals['category'][$parent][$child] += $amount;
-                    $totals['category'][$parent][':total'] += $amount;
+
+                    if ($type === '+') {
+                        $totals['category'][$parent][$child] += $amount;
+                        $totals['category'][$parent][':total'] += $amount;
+                    } elseif ($type === '-') {
+                        $totals['category'][$parent][$child] -= $amount;
+                        $totals['category'][$parent][':total'] -= $amount;
+                    }
+                    
                 }
             } else {
-                $totals['category'][$parent][':total'] += $amount;
+
+                if ($type === '+') {
+                    $totals['category'][$parent][':total'] += $amount;                    
+                } elseif ($type === '-') {
+                    $totals['category'][$parent][':total'] -= $amount;
+                }               
             }
 
             // Budget-specific aggregation for categories
@@ -185,6 +197,7 @@ function calculateTotals($transactions)
                         if (!isset($totals['budget_category'][$parent][$child])) {
                             $totals['budget_category'][$parent][$child] = 0;
                         }
+                        
                         $totals['budget_category'][$parent][$child] += $budget;
                         $totals['budget_category'][$parent][':total'] += $budget;
                     }
@@ -197,17 +210,28 @@ function calculateTotals($transactions)
         // Sum totals by account
         foreach ($entry['accounts'] as $parent => $children) {
             if (!isset($totals['account'][$parent])) {
-                $totals['account'][$parent] = ['total' => 0];
+                $totals['account'][$parent] = [':total' => 0];
             }
             if (is_array($children)) {
                 foreach ($children as $child => $_) {
                     if (!isset($totals['account'][$parent][$child])) {
                         $totals['account'][$parent][$child] = 0;
                     }
-                    $totals['account'][$parent][$child] += $amount;
+
+                    if ($type === '+') {
+                        $totals['account'][$parent][$child] += $amount;
+                    } elseif ($type === '-') {
+                        $totals['account'][$parent][$child] -= $amount;
+                    }
+                    
                 }
-            } else {
-                $totals['account'][$parent]['total'] += $amount;
+            } else 
+            {
+                if ($type === '+') {
+                    $totals['account'][$parent][':total'] += $amount;
+                } elseif ($type === '-') {
+                    $totals['account'][$parent][':total'] -= $amount;
+                }               
             }
 
             // Budget-specific aggregation for accounts
@@ -245,11 +269,8 @@ function calculateTotals($transactions)
             if (!isset($totals['method'][$entry['method']])) {
                 $totals['method'][$entry['method']] = 0;
             }
-            if ($type === '+') {
-                $totals['method'][$entry['method']] += $amount;
-            } elseif ($type === '-') {
-                $totals['method'][$entry['method']] -= $amount;
-            }
+                        
+            $totals['method'][$entry['method']] += $amount;
         }
 
         // Sum budget totals by person
