@@ -41,9 +41,9 @@ function parseBextFile($filename)
         }
 
         // Extract amount or budget
-        if (preg_match('/^[+\-]\s*(\d+)/', $line, $matches)) {
+        if (preg_match('/^[+\-]\s*(\d+(\.\d{1,2})?)/', $line, $matches)) {
             $entry['amount'] = (float)$matches[1];
-        } elseif (preg_match('/^\$\s*(\d+)/', $line, $matches)) {
+        } elseif (preg_match('/^\$\s*(\d+(\.\d{1,2})?)/', $line, $matches)) {
             $entry['budget'] = (float)$matches[1];
         }
 
