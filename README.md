@@ -235,3 +235,16 @@ php bext.php sample.bext -m
 ```
 
 Similarly d (today), -d (yesterday), w (this week),  -w (last week), m (current month), -m (last month), y (current year), and -y (last year) can be used to get transactions and totals on the respective date range.
+
+
+### BEXT-bar Example
+
+You can use the JSON output to display a BEXT-bar which shows a progress bar of expense vs. budget.
+
+![BEXT-bar](./bext-bar.png)
+
+### Income Expense Dashboard
+
+The JSON output can be displayed as shown in the image to list out the summary of transactions by categories and persons.
+
+![BEXT-dashboard](./bext-dashboard.png)
