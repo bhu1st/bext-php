@@ -312,109 +312,105 @@ function matchNestedCategoryOrAccount($data, $query)
 // Filter parsed data by account, person, category or payment method.
 function getTransactionsByFilter($transactions, $filter)
 {
-    $filteredTransactions = [];
+	$filters = preg_split('/\s+/', trim($filter));
+    $dateFilter = null;
+    $typeFilters = [];
 
-    // Determine the type of filter (person, account, category, or method)
-    $type = $filter[0]; // Get the prefix
-    $query = substr($filter, 1); // Remove the prefix to get the value
-
-    // Date-based filtering
-    $dateFilter = false;
-    $dateStart = null;
-    $dateEnd = null;
-
-    if (in_array($filter, ['d', '-d', 'w', '-w', 'm', '-m', 'y', '-y'])) {
-        $dateFilter = true;
-        $type = $filter;
-        $query = $filter;
+    // Separate date and type filters
+    foreach ($filters as $filter) {
+        if (preg_match('/^(-?)([dwmqy])$/i', $filter)) {
+            $dateFilter = $filter;
+        } elseif (preg_match('/^[@#~:]/', $filter)) {
+            $typeFilters[] = $filter;
+        }
     }
-
+	
+	
+    $filteredTransactions = [];
+	
     // Loop through all transactions and filter based on the filter type
-    foreach ($transactions as $entry) {
+    foreach ($transactions as $tx) {
 
-        $currentDate = new DateTime();
-        $matched = false;
+        $match = true;
+		
+		
+		// Apply date filter
+        if ($dateFilter && isset($tx['timestamp'])) {
+            $ts = strtotime($tx['timestamp']);
+            $now = time();
 
-        switch ($type) {
-
-            case 'a': // All Transactions
-                $matched = true;
-                break;
-
-            case '~': // Account
-                $matched = matchNestedCategoryOrAccount($entry['accounts'], $query);
-                break;
-            case '@': // Person
-                $matched = in_array($query, $entry['persons']);
-                break;
-            case '#': // Category
-                $matched = matchNestedCategoryOrAccount($entry['categories'], $query);
-                break;
-            case ':': // Payment Method
-                $matched = $entry['method'] === $query;
-                break;
-
-            case 'd': // Today
-                $dateStart = $currentDate->setTime(0, 0, 0);
-                $dateEnd = clone $dateStart;
-                $dateEnd->setTime(23, 59, 59);
-                break;
-
-            case '-d': // Yesterday
-                $dateStart = $currentDate->modify('-1 day')->setTime(0, 0, 0);
-                $dateEnd = clone $dateStart;
-                $dateEnd->setTime(23, 59, 59);
-                break;
-
-            case 'w': // Current week
-                $dateStart = $currentDate->modify('this week')->setTime(0, 0, 0);
-                $dateEnd = clone $dateStart;
-                $dateEnd->modify('+6 days')->setTime(23, 59, 59);
-                break;
-
-            case '-w': // Last week
-                $dateStart = $currentDate->modify('last week')->setTime(0, 0, 0);
-                $dateEnd = clone $dateStart;
-                $dateEnd->modify('+6 days')->setTime(23, 59, 59);
-                break;
-
-            case 'm': // Current month
-                $dateStart = $currentDate->modify('first day of this month')->setTime(0, 0, 0);
-                $dateEnd = clone $dateStart;
-                $dateEnd->modify('last day of this month')->setTime(23, 59, 59);
-                break;
-
-            case '-m': // Last month
-                $dateStart = $currentDate->modify('first day of last month')->setTime(0, 0, 0);
-                $dateEnd = clone $dateStart;
-                $dateEnd = $dateEnd->modify('last day of this month')->setTime(23, 59, 59);
-                break;
-
-            case 'y': // Current year
-                $dateStart = $currentDate->setDate($currentDate->format('Y'), 1, 1)->setTime(0, 0, 0);
-                $dateEnd = clone $dateStart;
-                $dateEnd->setDate($currentDate->format('Y'), 12, 31)->setTime(23, 59, 59);
-                break;
-
-            case '-y': // Last year
-                $dateStart = $currentDate->modify('-1 year')->setDate($currentDate->format('Y'), 1, 1)->setTime(0, 0, 0);
-                $dateEnd = clone $dateStart;
-                $dateEnd = $dateEnd->setDate($dateEnd->format('Y'), 12, 31)->setTime(23, 59, 59);
-                break;
-        }
-
-        // Filter by date range
-        if ($dateFilter && $entry['timestamp'] !== null) {
-            $entryDate = DateTime::createFromFormat('Y/m/d H:i', date("Y/m/d H:i", strtotime($entry['timestamp'])));
-            if ($entryDate && $entryDate >= $dateStart && $entryDate <= $dateEnd) {
-                $matched = true;
+            switch ($dateFilter) {
+                case 'd': $match = date('Y-m-d', $ts) === date('Y-m-d'); break;
+                case '-d': $match = date('Y-m-d', $ts) === date('Y-m-d', strtotime('-1 day')); break;
+                case 'w': $match = date('oW', $ts) === date('oW'); break;
+                case '-w': $match = date('oW', $ts) === date('oW', strtotime('-1 week')); break;
+                case 'm': $match = date('Y-m', $ts) === date('Y-m'); break;
+                case '-m': $match = date('Y-m', $ts) === date('Y-m', strtotime('-1 month')); break;
+                case 'y': $match = date('Y', $ts) === date('Y'); break;
+                case '-y': $match = date('Y', $ts) === date('Y', strtotime('-1 year')); break;
+                case 'q':
+                    $month = date('n', $ts);
+                    $quarter = ceil($month / 3);
+                    $match = (date('Y', $ts) === date('Y') && $quarter === ceil(date('n') / 3));
+                    break;
+                case '-q':
+                    $month = date('n', $ts);
+                    $quarter = ceil($month / 3);
+                    $lastQuarter = ceil((date('n', strtotime('-3 months'))) / 3);
+                    $match = (date('Y', $ts) === date('Y', strtotime('-3 months')) && $quarter === $lastQuarter);
+                    break;
             }
-        }
 
-        // If transaction matches the filter, add it to the filtered array and calculate totals
-        if ($matched) {
-            $filteredTransactions[] = $entry;
+            if (!$match) continue;
         }
+		
+		// Apply type filters
+        foreach ($typeFilters as $filter) {
+            $prefix = $filter[0];
+            $value = substr($filter, 1);
+            $valueParts = explode('>', $value);
+            $main = $valueParts[0];
+            $sub = $valueParts[1] ?? null;
+
+            switch ($prefix) {
+                case '@': // person
+                    if (!in_array($main, $tx['persons'])) {
+                        $match = false;
+                    }
+                    break;
+
+                case '#': // category/subcategory
+                    $found = false;
+                    foreach ($tx['categories'] ?? [] as $cat => $subs) {
+                        if ($cat === $main && $sub === null) $found = true;
+                        elseif (is_array($subs) && $sub !== null && array_key_exists($sub, $subs)) $found = true;
+                    }
+                    if (!$found) $match = false;
+                    break;
+
+                case '~': // account/subaccount
+                    $found = false;
+                    foreach ($tx['accounts'] ?? [] as $acc => $subs) {
+                        if ($acc === $main && $sub === null) $found = true;
+                        elseif (is_array($subs) && $sub !== null && array_key_exists($sub, $subs)) $found = true;
+                    }
+                    if (!$found) $match = false;
+                    break;
+
+                case ':': // payment method
+                    if (($tx['method'] ?? 'Other') !== $main) {
+                        $match = false;
+                    }
+                    break;
+            }
+
+            if (!$match) break;
+        }
+		
+		if ($match) {
+            $filteredTransactions[] = $tx;
+        }
+		
     }
 
     return ['filter' => $filter, 'totals' => calculateTotals($filteredTransactions), 'transactions' => $filteredTransactions];

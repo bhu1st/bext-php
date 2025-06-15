@@ -6,6 +6,46 @@ PHP Parser for [Budgeting and Expense Tracking (bext)](https://github.com/bhu1st
 
 ### **Uses example**
 
+
+```
+php bext.php sample.bext "<filter>"
+```
+
+---
+
+
+### Filter Syntax
+
+| Symbol | Meaning           | Example              |
+| ------ | ----------------- | -------------------- |
+| `@`    | Person            | `@Bhupal`            |
+| `#`    | Category (or sub) | `#Groceries>Veggies` |
+| `~`    | Account (or sub)  | `~PersonalAccount`       |
+| `:`    | Payment Method    | `:qr`                |
+
+
+---
+
+### Supported Date Modifiers
+
+| Modifier | Meaning      |
+| -------- | ------------ |
+| `d`      | Today        |
+| `-d`     | Yesterday    |
+| `w`      | This Week    |
+| `-w`     | Last Week    |
+| `m`      | This Month   |
+| `-m`     | Last Month   |
+| `y`      | This Year    |
+| `-y`     | Last Year    |
+| `q`      | This Quarter |
+| `-q`     | Last Quarter |
+
+
+---
+
+### Examples
+
 ```
 php bext.php sample.bext
 ```
@@ -235,6 +275,13 @@ php bext.php sample.bext -m
 ```
 
 Similarly d (today), -d (yesterday), w (this week),  -w (last week), m (current month), -m (last month), y (current year), and -y (last year) can be used to get transactions and totals on the respective date range.
+
+Combined filters
+
+```
+php bext.php sample.bext "#Food :cash"
+```
+
 
 
 ### BEXT-bar Example
