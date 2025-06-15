@@ -289,26 +289,6 @@ function calculateTotals($transactions)
     return $totals;
 }
 
-function matchNestedCategoryOrAccount($data, $query)
-{
-    $parts = explode('>', $query); // Split query by '>'
-    $key = $parts[0];
-    $subkey = $parts[1] ?? null;
-
-    // Check if the parent key matches
-    if (!isset($data[$key])) {
-        return false;
-    }
-
-    // Check for subkey match
-    if ($subkey !== null) {
-        return isset($data[$key][$subkey]);
-    }
-
-    // If no subkey, match the parent category/account
-    return true;
-}
-
 // Filter parsed data by account, person, category or payment method.
 function getTransactionsByFilter($transactions, $filter)
 {
