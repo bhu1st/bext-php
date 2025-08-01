@@ -21,7 +21,11 @@ function parseBextFile($filename)
     foreach ($data as $line) {
 
         $line = trim($line);
-        if (empty($line)) continue;
+		
+        if ($line === '' || $line[0] === '*') {
+            // Skip empty lines or comment lines starting with *
+            continue;
+        }
 
         $entry = [
             'type' => '',
