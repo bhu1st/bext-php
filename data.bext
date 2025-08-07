@@ -1,0 +1,21 @@
+* My Financial Transactions for 2024
+
+* --- BUDGETS ---
+$ 5000 #Groceries @Family [2024/01/01 00:00]
+$ 1000 #Entertainment @Family [2024/01/01 00:00]
+$ 2000 #Utilities @Family [2024/01/01 00:00]
+
+* --- INCOME ---
++ 7500 #Salary ?Monthly Paycheck ~Bank>Checking @Me [2024/01/05 09:00]
+
+* --- EXPENSES JANUARY ---
+- 150.50 #Groceries ?Weekly Shopping ~Bank>Checking @Family :CreditCard [2024/01/07 15:30]
+- 75 #Entertainment>Movies ?Cinema tickets ~Wallet @Me;Spouse :Cash [2024/01/12 20:00]
+- 1200 #Rent ?Monthly Rent ~Bank>Checking @Family :BankTransfer [2024/01/01 10:00]
+- 85.20 #Utilities>Electricity ~Bank>Checking @Family :DirectDebit [2024/01/20 11:00]
+
+* --- EXPENSES FEBRUARY ---
++ 7500 #Salary ?Monthly Paycheck ~Bank>Checking @Me [2024/02/05 09:00]
+- 210.75 #Groceries ?Supermarket run ~Bank>Checking @Family :CreditCard [2024/02/06 18:00]
+- 50 #Entertainment>Streaming ?Netflix subscription ~Bank>Checking @Family :CreditCard [2024/02/10 08:00]
+- 1200 #Rent ?Monthly Rent ~Bank>Checking @Family :BankTransfer [2024/02/01 10:00]

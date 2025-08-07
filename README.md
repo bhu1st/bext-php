@@ -295,3 +295,11 @@ You can use the JSON output to display a BEXT-bar which shows a progress bar of 
 The JSON output can be displayed as shown in the image to list out the summary of transactions by categories and persons.
 
 ![BEXT-dashboard](./bext-dashboard.png)
+
+
+### BEXT Report 
+
+You can generate Financial report of your BEXT records using `report.php` file by changing the BEXT file location and currency placeholder. Below report is generated using records from `data.bext` file.
+
+![BEXT-Report](./bext-report.png)
+
