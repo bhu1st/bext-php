@@ -11,7 +11,7 @@
  */
 
 // --- CONFIGURATION ---
-$bext_file = 'data.bext'; // CHANGE THIS to the name of your BEXT file.
+//$bext_file = 'data.bext'; // CHANGE THIS to the name of your BEXT file.
 $currency_symbol = '$';
 
 // --- INITIALIZATION ---
@@ -67,7 +67,7 @@ foreach ($transactions as $tx) {
     }
 }
 // Sort months chronologically
-ksort($monthly_summary); 
+ksort($monthly_summary);
 // Get a sorted list of all unique months for the table header
 $all_months = array_keys($monthly_summary);
 // Sort categories alphabetically for the table rows
@@ -76,47 +76,170 @@ sort($all_categories);
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BEXT Financial Report</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: #f4f7f6; color: #333; margin: 0; padding: 20px; }
-        .container { max-width: 1200px; margin: 0 auto; background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 15px rgba(0,0,0,0.05); }
-        h1 { text-align: center; color: #2c3e50; padding-bottom: 10px; }
-		h2 { color: #2c3e50; border-bottom: 2px solid #ecf0f1; padding-bottom: 10px; }
-        .grid-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px; margin-top: 20px; }
-        .report-section { background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.05); }
-        
+        body {
+            font-family: monospace, Arial, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            padding-bottom: 10px;
+        }
+
+        h2 {
+            color: #2c3e50;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 10px;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .report-section {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+            font-size: 0.8em;
+        }
+
         /* Progress Bar */
-        .progress-section { grid-column: 1 / -1; }
-        .progress-bar-container { background-color: #e9ecef; border-radius: 50px; height: 30px; overflow: hidden; }
-        .progress-bar { background-color: #3498db; height: 100%; width: <?php echo $progress_percentage; ?>%; text-align: center; line-height: 30px; color: white; font-weight: bold; transition: width 0.5s ease-in-out; }
-        .progress-bar.over-budget { background-color: #e74c3c; }
-        .progress-labels { display: flex; justify-content: space-between; margin-top: 5px; font-size: 0.9em; font-weight: bold; }
-        
+        .progress-section {
+            grid-column: 1 / -1;
+        }
+
+        .progress-bar-container {
+            background-color: #e9ecef;
+            border-radius: 50px;
+            height: 30px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            background-color: #3498db;
+            height: 100%;
+            width: <?php echo $progress_percentage; ?>%;
+            text-align: center;
+            line-height: 30px;
+            color: white;
+            font-weight: bold;
+            transition: width 0.5s ease-in-out;
+        }
+
+        .progress-bar.over-budget {
+            background-color: #e74c3c;
+        }
+
+        .progress-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+
         /* Summary */
-        .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .summary-item { background-color: #ecf0f1; padding: 15px; border-radius: 5px; text-align: center; }
-        .summary-item h3 { margin: 0 0 5px 0; }
-        .summary-item p { margin: 0; font-size: 1.5em; font-weight: bold; }
-        .income { color: #27ae60; }
-        .expense { color: #c0392b; }
-        .net { color: #2980b9; }
-        .budget { color: #8e44ad; }
-        
+        .summary-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .summary-item {
+            background-color: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .summary-item h3 {
+            margin: 0 0 5px 0;
+        }
+
+        .summary-item p {
+            margin: 0;
+            font-size: 1em;
+            font-weight: bold;
+        }
+
+        .income {
+            color: #27ae60;
+        }
+
+        .expense {
+            color: #c0392b;
+        }
+
+        .net {
+            color: #2980b9;
+        }
+
+        .budget {
+            color: #8e44ad;
+        }
+
         /* Tables */
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
-        th { background-color: #f2f2f2; font-weight: bold; }
-        tr:hover { background-color: #f9f9f9; }
-        .text-right { text-align: right; }
-        .total-row { font-weight: bold; background-color: #ecf0f1; }
-        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+
+        tr:hover {
+            background-color: #f9f9f9;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .total-row {
+            font-weight: bold;
+            background-color: #ecf0f1;
+        }
+
         /* Monthly Summary Table */
-        .monthly-summary-section { grid-column: 1 / -1; overflow-x: auto; }
-		
-		/* Footer */
+        .monthly-summary-section {
+            grid-column: 1 / -1;
+            overflow-x: auto;
+        }
+
+        /* Footer */
         .report-footer {
             text-align: center;
             margin-top: 40px;
@@ -125,22 +248,24 @@ sort($all_categories);
             font-size: 0.9em;
             color: #777;
         }
+
         .report-footer p {
             margin: 5px 0;
         }
+
         .report-footer a {
             color: #3498db;
             text-decoration: none;
         }
+
         .report-footer a:hover {
             text-decoration: underline;
         }
-		
-		
     </style>
     <!-- If you need jQuery for future enhancements, uncomment the line below -->
     <!-- <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> -->
 </head>
+
 <body>
 
     <div class="container">
@@ -150,7 +275,7 @@ sort($all_categories);
         <div class="report-section progress-section">
             <h2>Budget vs. Expense</h2>
             <div class="progress-bar-container">
-                <div class="progress-bar <?php if($total_expense > $total_budget) echo 'over-budget'; ?>" style="width: <?php echo $progress_percentage; ?>%;">
+                <div class="progress-bar <?php if ($total_expense > $total_budget) echo 'over-budget'; ?>" style="width: <?php echo $progress_percentage; ?>%;">
                     <?php echo round($progress_percentage, 2); ?>%
                 </div>
             </div>
@@ -160,31 +285,31 @@ sort($all_categories);
             </div>
         </div>
 
-		<!-- 2. Summary -->
-		<div class="report-section">
-			<div class="summary-grid">
-				<div class="summary-item">
-					<h3>Income</h3>
-					<p class="income"><?php echo $currency_symbol . number_format($total_income, 2); ?></p>
-				</div>
-				<div class="summary-item">
-					<h3>Expense</h3>
-					<p class="expense"><?php echo $currency_symbol . number_format($total_expense, 2); ?></p>
-				</div>
-				<div class="summary-item">
-					<h3>Net Savings</h3>
-					<p class="net"><?php echo $currency_symbol . number_format($net_savings, 2); ?></p>
-				</div>
-				<div class="summary-item">
-					<h3>Budget</h3>
-					<p class="budget"><?php echo $currency_symbol . number_format($total_budget, 2); ?></p>
-				</div>
-			</div>
-		</div>
-			
+        <!-- 2. Summary -->
+        <div class="report-section">
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <h3>Income</h3>
+                    <p class="income"><?php echo $currency_symbol . number_format($total_income, 2); ?></p>
+                </div>
+                <div class="summary-item">
+                    <h3>Expense</h3>
+                    <p class="expense"><?php echo $currency_symbol . number_format($total_expense, 2); ?></p>
+                </div>
+                <div class="summary-item">
+                    <h3>Net Savings</h3>
+                    <p class="net"><?php echo $currency_symbol . number_format($net_savings, 2); ?></p>
+                </div>
+                <div class="summary-item">
+                    <h3>Budget</h3>
+                    <p class="budget"><?php echo $currency_symbol . number_format($total_budget, 2); ?></p>
+                </div>
+            </div>
+        </div>
+
         <div class="grid-container">
-         
-		  <!-- 3. Category Summary -->
+
+            <!-- 3. Category Summary -->
             <div class="report-section">
                 <h2>Category Summary</h2>
                 <table>
@@ -214,104 +339,120 @@ sort($all_categories);
                                 if ($total > 0) {
                                     $income = $total;
                                 } else {
-                                    $expense = abs($total);
+                                    
+                                    $sum_subs = array_sum(
+                                        array_filter(
+                                            $totals['category'][$cat],
+                                            fn($key) => $key !== ':total',
+                                            ARRAY_FILTER_USE_KEY
+                                        )
+                                    );
+                                    
+                                    if ($total > $sum_subs) $income = $total - $sum_subs;
+                                    $expense = abs($total);                                   
                                 }
                             }
-                            
+							
+							$cat_income_percentage = ($income > 0) ? ($income / $total_income) * 100 : 0;
+							$cat_expense_percentage = ($expense > 0) ? ($expense / $total_expense) * 100 : 0;
+
+
                             // Get budget
                             $budget = isset($totals['budget_category'][$cat]) ? $totals['budget_category'][$cat][':total'] : 0;
                         ?>
-                        <tr>
-                            <td><?php echo htmlspecialchars($cat); ?></td>
-                            <td class="text-right income">
-                                <?php echo ($income > 0) ? $currency_symbol . number_format($income, 2) : '-'; ?>
-                            </td>
-                            <td class="text-right expense">
-                                <?php echo ($expense > 0) ? $currency_symbol . number_format($expense, 2) : '-'; ?>
-                            </td>
-                            <td class="text-right budget">
-                                <?php echo ($budget > 0) ? $currency_symbol . number_format($budget, 2) : '-'; ?>
-                            </td>
-                        </tr>
+                            <tr>
+                                <td><?php echo htmlspecialchars($cat); ?></td>
+                                <td class="text-right income">
+                                    <?php echo ($income > 0) ? $currency_symbol . number_format($income, 2) : '-'; ?>
+									<?php echo ($cat_income_percentage > 0) ? "(".number_format($cat_income_percentage, 2). "%)" : ''; ?>
+                                </td>
+                                <td class="text-right expense">
+                                    <?php echo ($expense > 0) ? $currency_symbol . number_format($expense, 2) : '-'; ?>
+									<?php echo ($cat_expense_percentage > 0) ? "(".number_format($cat_expense_percentage, 2). "%)" : ''; ?>
+                                </td>
+                                <td class="text-right budget">
+                                    <?php echo ($budget > 0) ? $currency_symbol . number_format($budget, 2) : '-'; ?>
+                                </td>
+                            </tr>
                         <?php endforeach; ?>
                     </tbody>
                 </table>
             </div>
 
             <div>
-			
-				<!-- 5. Person Summary -->
-				<div class="report-section">
-					<h2>Person Summary</h2>
-					<table>
-						<thead>
-							<tr>
-								<th>Person</th>
-								<th class="text-right">Net Balance</th>
-							</tr>
-						</thead>
-						<tbody>
-							<?php foreach ($totals['person'] as $person => $total): ?>
-							<tr>
-								<td><?php echo htmlspecialchars($person); ?></td>
-								<td class="text-right <?php echo ($total >= 0) ? 'income' : 'expense'; ?>">
-									<?php echo $currency_symbol . number_format($total, 2); ?>
-								</td>
-							</tr>
-							<?php endforeach; ?>
-						</tbody>
-					</table>
-				</div>
 
-				<!-- 4. Account Summary -->
-				<div class="report-section">
-					<h2>Account Summary</h2>
-					<table>
-						<thead>
-							<tr>
-								<th>Account</th>
-								<th class="text-right">Balance</th>
-							</tr>
-						</thead>
-						<tbody>
-							<?php foreach ($totals['account'] as $acc => $data): ?>
-							<tr>
-								<td><?php echo htmlspecialchars($acc); ?></td>
-								<td class="text-right <?php echo ($data[':total'] >= 0) ? 'income' : 'expense'; ?>">
-									<?php echo $currency_symbol . number_format($data[':total'], 2); ?>
-								</td>
-							</tr>
-							<?php endforeach; ?>
-						</tbody>
-					</table>
-				</div>
-				
-				<!-- 6. Payment Method Summary -->
-				<div class="report-section">
-					<h2>Payment Method Summary</h2>
-					 <table>
-						<thead>
-							<tr>
-								<th>Method</th>
-								<th class="text-right">Total Spent</th>
-							</tr>
-						</thead>
-						<tbody>
-							<?php foreach ($totals['method'] as $method => $total): ?>
-							<tr>
-								<td><?php echo htmlspecialchars($method); ?></td>
-								<td class="text-right expense">
-									<?php echo $currency_symbol . number_format($total, 2); ?>
-								</td>
-							</tr>
-							<?php endforeach; ?>
-						</tbody>
-					</table>
-				</div>			
-			</div>
-			
+                <!-- 5. Person Summary -->
+                <div class="report-section">
+                    <h2>Person Summary</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Person</th>
+                                <th class="text-right">Net Balance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($totals['person'] as $person => $total): ?>
+                                <tr>
+                                    <td><?php echo htmlspecialchars($person); ?></td>
+                                    <td class="text-right <?php echo ($total >= 0) ? 'income' : 'expense'; ?>">
+                                        <?php echo $currency_symbol . number_format($total, 2); ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 4. Account Summary -->
+                <div class="report-section">
+                    <h2>Account Summary</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Account</th>
+                                <th class="text-right">Balance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($totals['account'] as $acc => $data): ?>
+                                <tr>
+                                    <td><?php echo htmlspecialchars($acc); ?></td>
+                                    <td class="text-right <?php echo ($data[':total'] >= 0) ? 'income' : 'expense'; ?>">
+                                        <?php echo $currency_symbol . number_format($data[':total'], 2); ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 6. Payment Method Summary -->
+                <div class="report-section">
+                    <h2>Payment Method Summary</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Method</th>
+                                <th class="text-right">Total Spent</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($totals['method'] as $method => $total): ?>
+                                <tr>
+                                    <td><?php echo htmlspecialchars($method); ?></td>
+                                    <td class="text-right expense">
+                                        <?php echo $currency_symbol . number_format($total, 2); ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
         </div>
-        
+
         <!-- 7. Monthly Category-wise Summary Table (Pivoted View) -->
         <div class="report-section monthly-summary-section">
             <h2>Monthly Category Expense Summary</h2>
@@ -326,30 +467,30 @@ sort($all_categories);
                 </thead>
                 <tbody>
                     <?php foreach ($all_categories as $category): ?>
-                    <tr>
-                        <td><strong><?php echo htmlspecialchars($category); ?></strong></td>
-                        <?php foreach ($all_months as $month): ?>
-                            <td class="text-right">
-                                <?php 
-                                // Look up the expense for the current category and month
-                                $amount = isset($monthly_summary[$month][$category]) ? $monthly_summary[$month][$category] : 0;
-                                echo ($amount > 0) ? $currency_symbol . number_format($amount, 2) : '-';
-                                ?>
-                            </td>
-                        <?php endforeach; ?>
-                    </tr>
+                        <tr>
+                            <td><strong><?php echo htmlspecialchars($category); ?></strong></td>
+                            <?php foreach ($all_months as $month): ?>
+                                <td class="text-right">
+                                    <?php
+                                    // Look up the expense for the current category and month
+                                    $amount = isset($monthly_summary[$month][$category]) ? $monthly_summary[$month][$category] : 0;
+                                    echo ($amount > 0) ? $currency_symbol . number_format($amount, 2) : '-';
+                                    ?>
+                                </td>
+                            <?php endforeach; ?>
+                        </tr>
                     <?php endforeach; ?>
                 </tbody>
             </table>
         </div>
-		
-		<!-- Footer -->
+
+        <!-- Footer -->
         <footer class="report-footer">
             <p>
                 Report generated on: <?php echo date('Y-m-d H:i:s'); ?>
             </p>
             <p>
-                BEXT Reporting Tool. Copyright &copy; <?php echo date('Y'); ?> 
+                BEXT Reporting Tool. Copyright &copy; <?php echo date('Y'); ?>
                 <a href="https://github.com/bhu1st/bext-php" target="_blank" rel="noopener">Bhupal Sapkota</a>.
             </p>
         </footer>
@@ -357,4 +498,5 @@ sort($all_categories);
     </div>
 
 </body>
+
 </html>
