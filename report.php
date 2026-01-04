@@ -382,7 +382,24 @@ sort($all_categories);
                                 <tr>
                                     <td><?php echo htmlspecialchars($person); ?></td>
                                     <td class="text-right <?php echo ($total >= 0) ? 'income' : 'expense'; ?>">
-                                        <?php echo $currency_symbol . number_format($total, 2); ?>
+									
+									<?php 
+									
+									echo $currency_symbol . number_format($total, 2);
+										
+									if ($total >= 0)
+									{ 																
+										$income_percentage = ($total / $total_income) * 100;
+										echo ($income_percentage > 0) ? " (".number_format($income_percentage, 2). "%)" : '';
+									} 
+									else 
+									{
+										$expense_percentage = (abs($total) / $total_expense) * 100;
+										echo ($expense_percentage > 0) ? " (".number_format($expense_percentage, 2). "%)" : '';
+									}
+									
+									?>
+								
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
