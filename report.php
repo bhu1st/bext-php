@@ -210,7 +210,7 @@ sort($all_categories);
 
         th,
         td {
-            padding: 12px;
+            padding: 10px 5px;
             text-align: left;
             border-bottom: 1px solid #ddd;
         }
@@ -338,8 +338,8 @@ sort($all_categories);
                                 $total = $totals['category'][$cat][':total'];                               
                                 $income = $totals['category'][$cat][':income'];
                                 $expense = $totals['category'][$cat][':expense'];
-                                $cat_income_percentage = ($income > 0) ? ($income / $total_income) * 100 : 0;
-							    $cat_expense_percentage = ($expense > 0) ? ($expense / $total_expense) * 100 : 0;
+                                $cat_income_percentage = ($income / $total_income) * 100;
+							    $cat_expense_percentage = (abs($expense) / $total_expense) * 100;
                             
                             }
 							
@@ -350,11 +350,11 @@ sort($all_categories);
                                 <td><?php echo htmlspecialchars($cat); ?></td>
                                 <td class="text-right income">
                                     <?php echo ($income) ? $currency_symbol . number_format($income, 2) : '-'; ?>
-									<?php echo ($cat_income_percentage > 0) ? "(".number_format($cat_income_percentage, 2). "%)" : ''; ?>
+									<?php echo ($cat_income_percentage > 0) ? " (".number_format($cat_income_percentage, 2). "%)" : ''; ?>
                                 </td>
                                 <td class="text-right expense">
                                     <?php echo ($expense) ? $currency_symbol . number_format($expense, 2) : '-'; ?>
-									<?php echo ($cat_expense_percentage > 0) ? "(".number_format($cat_expense_percentage, 2). "%)" : ''; ?>
+									<?php echo ($cat_expense_percentage > 0) ? " (".number_format($cat_expense_percentage, 2). "%)" : ''; ?>
                                 </td>
                                 <td class="text-right budget">
                                     <?php echo ($budget > 0) ? $currency_symbol . number_format($budget, 2) : '-'; ?>
@@ -499,7 +499,5 @@ sort($all_categories);
         </footer>
 
     </div>
-
 </body>
-
 </html>
