@@ -165,7 +165,7 @@ function calculateTotals($transactions)
         // Sum totals by category
         foreach ($entry['categories'] as $parent => $children) {
             if (!isset($totals['category'][$parent])) {
-                $totals['category'][$parent] = [':total' => 0];
+                $totals['category'][$parent] = [':total' => 0, ':income' => 0, ':expense' => 0];
             }
             if (is_array($children)) {
                 foreach ($children as $child => $_) {
@@ -176,18 +176,23 @@ function calculateTotals($transactions)
                     if ($type === '+') {
                         $totals['category'][$parent][$child] += $amount;
                         $totals['category'][$parent][':total'] += $amount;
+                        $totals['category'][$parent][':income'] += $amount;
+                       
                     } elseif ($type === '-') {
                         $totals['category'][$parent][$child] -= $amount;
                         $totals['category'][$parent][':total'] -= $amount;
+                        $totals['category'][$parent][':expense'] -= $amount;
                     }
                     
                 }
             } else {
 
                 if ($type === '+') {
+                     $totals['category'][$parent][':income'] += $amount;
                     $totals['category'][$parent][':total'] += $amount;                    
                 } elseif ($type === '-') {
                     $totals['category'][$parent][':total'] -= $amount;
+                    $totals['category'][$parent][':expense'] -= $amount;
                 }               
             }
 

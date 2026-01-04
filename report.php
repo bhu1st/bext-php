@@ -11,7 +11,7 @@
  */
 
 // --- CONFIGURATION ---
-//$bext_file = 'data.bext'; // CHANGE THIS to the name of your BEXT file.
+$bext_file = 'data.bext'; // CHANGE THIS to the name of your BEXT file.
 $currency_symbol = '$';
 
 // --- INITIALIZATION ---
@@ -335,39 +335,25 @@ sort($all_categories);
 
                             // Get income and expense from transaction totals
                             if (isset($totals['category'][$cat])) {
-                                $total = $totals['category'][$cat][':total'];
-                                if ($total > 0) {
-                                    $income = $total;
-                                } else {
-                                    
-                                    $sum_subs = array_sum(
-                                        array_filter(
-                                            $totals['category'][$cat],
-                                            fn($key) => $key !== ':total',
-                                            ARRAY_FILTER_USE_KEY
-                                        )
-                                    );
-                                    
-                                    if ($total > $sum_subs) $income = $total - $sum_subs;
-                                    $expense = abs($total);                                   
-                                }
+                                $total = $totals['category'][$cat][':total'];                               
+                                $income = $totals['category'][$cat][':income'];
+                                $expense = $totals['category'][$cat][':expense'];
+                                $cat_income_percentage = ($income > 0) ? ($income / $total_income) * 100 : 0;
+							    $cat_expense_percentage = ($expense > 0) ? ($expense / $total_expense) * 100 : 0;
+                            
                             }
 							
-							$cat_income_percentage = ($income > 0) ? ($income / $total_income) * 100 : 0;
-							$cat_expense_percentage = ($expense > 0) ? ($expense / $total_expense) * 100 : 0;
-
-
-                            // Get budget
+							// Get budget
                             $budget = isset($totals['budget_category'][$cat]) ? $totals['budget_category'][$cat][':total'] : 0;
                         ?>
                             <tr>
                                 <td><?php echo htmlspecialchars($cat); ?></td>
                                 <td class="text-right income">
-                                    <?php echo ($income > 0) ? $currency_symbol . number_format($income, 2) : '-'; ?>
+                                    <?php echo ($income) ? $currency_symbol . number_format($income, 2) : '-'; ?>
 									<?php echo ($cat_income_percentage > 0) ? "(".number_format($cat_income_percentage, 2). "%)" : ''; ?>
                                 </td>
                                 <td class="text-right expense">
-                                    <?php echo ($expense > 0) ? $currency_symbol . number_format($expense, 2) : '-'; ?>
+                                    <?php echo ($expense) ? $currency_symbol . number_format($expense, 2) : '-'; ?>
 									<?php echo ($cat_expense_percentage > 0) ? "(".number_format($cat_expense_percentage, 2). "%)" : ''; ?>
                                 </td>
                                 <td class="text-right budget">
